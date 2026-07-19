@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administration — Efoot Market SN</title>
+<link rel="icon" type="image/png" href="/favicon-32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0b1410">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- Écran de connexion -->
+<div id="loginScreen" class="admin-login">
+  <h1>Accès admin</h1>
+  <label for="codeInput">Code secret</label>
+  <input type="password" id="codeInput" placeholder="••••••••" autocomplete="off">
+  <button class="btn-primary" id="loginBtn">Se connecter</button>
+  <div class="error-msg" id="loginError"></div>
+</div>
+
+<!-- Tableau de bord (affiché après connexion) -->
+<div id="dashboard" style="display:none;">
+  <header class="site-header">
+    <div class="inner container" style="padding:0;">
+      <div class="brand">EFOOT MARKET<span> SN</span> <span style="font-size:16px;color:var(--chalk-dim);">/ admin</span></div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="admin-topbar">
+      <span class="tagline">Gère tes comptes en vente</span>
+      <button class="btn-outline" id="logoutBtn">Se déconnecter</button>
+    </div>
+
+    <div class="admin-layout">
+      <!-- Formulaire ajout / modif -->
+      <div class="panel">
+        <h2 id="formTitle">Ajouter un compte</h2>
+        <form id="accountForm">
+          <input type="hidden" id="editId">
+
+          <label for="title">Titre du compte</label>
+          <input type="text" id="title" placeholder="Ex : Compte eFootball niveau 45" required>
+
+          <label for="price">Prix (FCFA)</label>
+          <input type="number" id="price" placeholder="Ex : 15000" required min="0">
+
+          <label for="oldPrice">Prix barré — promo (FCFA, optionnel)</label>
+          <input type="number" id="oldPrice" placeholder="Laisser vide si pas de promo" min="0">
+
+          <label for="description">Description détaillée</label>
+          <textarea id="description" placeholder="Détails du compte : joueurs, coins, skins, etc."></textarea>
+
+          <label for="phone">Contact fournisseur (note interne, optionnel — n'est jamais utilisé pour WhatsApp)</label>
+          <input type="text" id="phone" placeholder="Ex : nom ou numéro de la personne qui t'a fourni ce compte">
+
+          <div class="file-input-wrap">
+            <label for="photo">Photo du compte</label>
+            <input type="file" id="photo" accept="image/*">
+          </div>
+
+          <label style="display:flex;align-items:center;gap:8px;margin-top:16px;cursor:pointer;">
+            <input type="checkbox" id="isFlash" style="width:auto;">
+            <span style="margin:0;">🔥 Mettre en vente flash</span>
+          </label>
+
+          <button type="submit" class="btn-primary" id="submitBtn">Ajouter le compte</button>
+          <button type="button" class="btn-outline" id="cancelEditBtn" style="width:100%;margin-top:10px;display:none;">Annuler la modification</button>
+        </form>
+      </div>
+
+      <!-- Liste des comptes -->
+      <div class="panel">
+        <h2>Comptes en vente</h2>
+        <div id="adminList" class="admin-list" style="margin-top:14px;"></div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:24px;">
+      <h2>Numéro WhatsApp pour les ventes</h2>
+      <p style="color:var(--chalk-dim);font-size:13px;margin-top:0;">Ce numéro unique reçoit TOUS les messages "Acheter via WhatsApp", quel que soit le compte concerné.</p>
+      <label for="whatsappNumber">Numéro (avec indicatif, sans espace ni +)</label>
+      <input type="text" id="whatsappNumber" placeholder="Ex : 221771961314">
+      <button type="button" class="btn-primary" id="saveWhatsappBtn">Enregistrer le numéro</button>
+    </div>
+
+    <div class="panel" style="margin-top:24px;">
+      <h2>Bannière promo (en haut du catalogue)</h2>
+      <label for="bannerText">Texte de la bannière (utilisé seulement si pas d'image)</label>
+      <input type="text" id="bannerText" placeholder="Ex : Promo -10% sur tous les comptes ce week-end !">
+
+      <div class="file-input-wrap">
+        <label for="bannerImage">Image de bannière (optionnel, remplace le texte)</label>
+        <input type="file" id="bannerImage" accept="image/*">
+      </div>
+      <div id="bannerPreviewWrap" style="margin-top:12px;display:none;">
+        <img id="bannerPreview" style="max-width:100%;border-radius:8px;max-height:140px;object-fit:cover;">
+        <button type="button" class="btn-outline" id="removeBannerImageBtn" style="margin-top:8px;">Retirer l'image</button>
+      </div>
+
+      <label style="display:flex;align-items:center;gap:8px;margin-top:14px;cursor:pointer;">
+        <input type="checkbox" id="bannerActive" style="width:auto;">
+        <span style="margin:0;">Afficher la bannière sur le site</span>
+      </label>
+
+      <label for="bannerEndTime">Compte à rebours — date et heure de fin (optionnel)</label>
+      <input type="datetime-local" id="bannerEndTime">
+      <button type="button" class="btn-outline" id="removeCountdownBtn" style="width:100%;margin-top:8px;">Retirer le compte à rebours</button>
+
+      <button type="button" class="btn-primary" id="saveBannerBtn">Enregistrer la bannière</button>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/admin.js"></script>
+</body>
+</html>
