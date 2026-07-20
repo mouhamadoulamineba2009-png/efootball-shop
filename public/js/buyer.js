@@ -4,6 +4,7 @@ const accountPanel = document.getElementById("accountPanel");
 
 let buyerLoggedIn = false;
 let buyerEmail = "";
+let buyerAvatarUrl = "";
 
 // --- État de connexion ---
 async function checkBuyerSession() {
@@ -13,8 +14,10 @@ async function checkBuyerSession() {
       const data = await res.json();
       buyerLoggedIn = true;
       buyerEmail = data.email;
+      buyerAvatarUrl = data.avatar_url || "";
       renderBuyerArea();
       loadFavoriteIds();
+      loadUnreadCount();
     } else {
       buyerLoggedIn = false;
       renderBuyerArea();
@@ -27,7 +30,10 @@ async function checkBuyerSession() {
 
 function renderBuyerArea() {
   if (buyerLoggedIn) {
-    buyerArea.innerHTML = `<button class="btn-outline" id="openAccountBtn">${escapeHtml(buyerEmail)} · Mon compte</button>`;
+    const avatar = buyerAvatarUrl
+      ? `<img src="${buyerAvatarUrl}" class="mini-avatar" alt="">`
+      : `<span class="mini-avatar mini-avatar-placeholder">👤</span>`;
+    buyerArea.innerHTML = `<button class="btn-outline buyer-btn" id="openAccountBtn">${avatar}${escapeHtml(buyerEmail)} <span id="miniNotifBadge" class="notif-badge" style="display:none;"></span></button>`;
     document.getElementById("openAccountBtn").addEventListener("click", openAccountPanel);
   } else {
     buyerArea.innerHTML = `<button class="btn-outline" id="openLoginBtn">Se connecter</button>`;
@@ -109,7 +115,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
   }
 });
 
-// --- Panneau "Mon compte" (favoris + paramètres) ---
+// --- Panneau "Mon compte" (favoris + notifications + sécurité + paramètres) ---
 function openAccountPanel() {
   accountPanel.style.display = "flex";
   switchAccountTab("favorites");
@@ -122,13 +128,22 @@ document.getElementById("accountPanelClose").addEventListener("click", () => {
 accountPanel.addEventListener("click", (e) => { if (e.target === accountPanel) accountPanel.style.display = "none"; });
 
 function switchAccountTab(tab) {
-  const isFav = tab === "favorites";
-  document.getElementById("tabFavorites").classList.toggle("active", isFav);
-  document.getElementById("tabSettings").classList.toggle("active", !isFav);
-  document.getElementById("favoritesPane").style.display = isFav ? "block" : "none";
-  document.getElementById("settingsForm").style.display = isFav ? "none" : "block";
+  document.getElementById("tabFavorites").classList.toggle("active", tab === "favorites");
+  document.getElementById("tabNotifications").classList.toggle("active", tab === "notifications");
+  document.getElementById("tabSecurity").classList.toggle("active", tab === "security");
+  document.getElementById("tabSettings").classList.toggle("active", tab === "settings");
+
+  document.getElementById("favoritesPane").style.display = tab === "favorites" ? "block" : "none";
+  document.getElementById("notificationsPane").style.display = tab === "notifications" ? "block" : "none";
+  document.getElementById("securityPane").style.display = tab === "security" ? "block" : "none";
+  document.getElementById("settingsForm").style.display = tab === "settings" ? "block" : "none";
+
+  if (tab === "notifications") { loadNotifications(); }
+  if (tab === "security") { loadSessions(); }
 }
 document.getElementById("tabFavorites").addEventListener("click", () => switchAccountTab("favorites"));
+document.getElementById("tabNotifications").addEventListener("click", () => switchAccountTab("notifications"));
+document.getElementById("tabSecurity").addEventListener("click", () => switchAccountTab("security"));
 document.getElementById("tabSettings").addEventListener("click", () => switchAccountTab("settings"));
 
 async function loadFavoritesList() {
@@ -174,38 +189,128 @@ window.handleFavoriteClick = async function (accountId, btnEl) {
   }
 };
 
-// --- Paramètres (profil) ---
+// --- Notifications ---
+async function loadUnreadCount() {
+  const res = await fetch("/api/buyer/notifications/unread-count", { credentials: "include" });
+  if (!res.ok) return;
+  const data = await res.json();
+  const badges = [document.getElementById("notifBadge"), document.getElementById("miniNotifBadge")];
+  badges.forEach((b) => {
+    if (!b) return;
+    if (data.count > 0) {
+      b.textContent = data.count;
+      b.style.display = "inline-block";
+    } else {
+      b.style.display = "none";
+    }
+  });
+}
+
+async function loadNotifications() {
+  const res = await fetch("/api/buyer/notifications", { credentials: "include" });
+  if (!res.ok) return;
+  const notifications = await res.json();
+  const list = document.getElementById("notificationsList");
+  const empty = document.getElementById("notificationsEmpty");
+
+  if (!notifications.length) {
+    list.innerHTML = "";
+    empty.style.display = "block";
+  } else {
+    empty.style.display = "none";
+    list.innerHTML = notifications.map((n) => `
+      <div class="notif-item ${n.is_read ? "" : "unread"}">
+        <p>${escapeHtml(n.message)}</p>
+        <span class="notif-date">${new Date(n.created_at).toLocaleDateString("fr-FR")}</span>
+      </div>
+    `).join("");
+  }
+
+  await fetch("/api/buyer/notifications/read-all", { method: "POST", credentials: "include" });
+  loadUnreadCount();
+}
+
+// --- Sécurité (appareils connectés) ---
+function parseDevice(userAgent) {
+  if (!userAgent) return "Appareil inconnu";
+  if (/iPhone/.test(userAgent)) return "iPhone (Safari)";
+  if (/iPad/.test(userAgent)) return "iPad (Safari)";
+  if (/Android/.test(userAgent)) return "Téléphone Android";
+  if (/Windows/.test(userAgent)) return "Ordinateur Windows";
+  if (/Macintosh/.test(userAgent)) return "Mac";
+  if (/Linux/.test(userAgent)) return "Ordinateur Linux";
+  return "Appareil inconnu";
+}
+
+async function loadSessions() {
+  const res = await fetch("/api/buyer/sessions", { credentials: "include" });
+  if (!res.ok) return;
+  const sessions = await res.json();
+  const list = document.getElementById("sessionsList");
+  list.innerHTML = sessions.map((s) => `
+    <div class="session-item">
+      <span>${parseDevice(s.user_agent)}</span>
+      <span class="session-date">${new Date(s.created_at).toLocaleString("fr-FR")}</span>
+    </div>
+  `).join("") || `<p style="color:var(--chalk-dim);font-size:13px;">Aucune connexion enregistrée.</p>`;
+}
+
+document.getElementById("revokeAllBtn").addEventListener("click", async () => {
+  if (!confirm("Déconnecter tous les appareils connectés à ton compte (y compris celui-ci, tu resteras connecté ici) ?")) return;
+  await fetch("/api/buyer/sessions/revoke-all", { method: "POST", credentials: "include" });
+  showBuyerToast("Tous les appareils ont été déconnectés");
+  loadSessions();
+});
+
+// --- Paramètres (profil + avatar) ---
 async function loadBuyerProfile() {
   const res = await fetch("/api/buyer/me", { credentials: "include" });
   if (!res.ok) return;
   const data = await res.json();
   document.getElementById("setEmail").value = data.email || "";
   document.getElementById("setPhone").value = data.phone || "";
+
+  const preview = document.getElementById("avatarPreview");
+  const placeholder = document.getElementById("avatarPlaceholder");
+  if (data.avatar_url) {
+    preview.src = data.avatar_url;
+    preview.style.display = "block";
+    placeholder.style.display = "none";
+  } else {
+    preview.style.display = "none";
+    placeholder.style.display = "flex";
+  }
 }
+
+document.getElementById("setAvatar").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const preview = document.getElementById("avatarPreview");
+  preview.src = URL.createObjectURL(file);
+  preview.style.display = "block";
+  document.getElementById("avatarPlaceholder").style.display = "none";
+});
 
 document.getElementById("settingsForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const email = document.getElementById("setEmail").value;
-  const phone = document.getElementById("setPhone").value;
-  const password = document.getElementById("setPassword").value;
   const errEl = document.getElementById("settingsErr");
   errEl.textContent = "";
 
-  const body = { email, phone };
-  if (password) body.password = password;
+  const fd = new FormData();
+  fd.append("email", document.getElementById("setEmail").value);
+  fd.append("phone", document.getElementById("setPhone").value);
+  const password = document.getElementById("setPassword").value;
+  if (password) fd.append("password", password);
+  const avatarFile = document.getElementById("setAvatar").files[0];
+  if (avatarFile) fd.append("avatar", avatarFile);
 
   try {
-    const res = await fetch("/api/buyer/me", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify(body),
-    });
+    const res = await fetch("/api/buyer/me", { method: "PUT", credentials: "include", body: fd });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) { errEl.textContent = data.error || "Erreur"; return; }
     document.getElementById("setPassword").value = "";
-    buyerEmail = email;
-    renderBuyerArea();
+    checkBuyerSession();
+    showBuyerToast("Paramètres enregistrés");
   } catch {
     errEl.textContent = "Erreur réseau";
   }
@@ -219,5 +324,18 @@ document.getElementById("logoutBuyerBtn").addEventListener("click", async () => 
   renderBuyerArea();
   if (window.applyFavoriteStates) window.applyFavoriteStates();
 });
+
+function showBuyerToast(msg) {
+  let toast = document.getElementById("buyerToast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "buyerToast";
+    toast.className = "toast";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 2200);
+}
 
 checkBuyerSession();

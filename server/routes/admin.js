@@ -88,6 +88,16 @@ router.post("/accounts", upload.single("photo"), async (req, res) => {
        values ($1, $2, $3, $4, $5, $6, $7) returning id`,
       [title, price, old_price ? old_price : null, description || "", photoUrl, phone_number || null, is_flash === "true" || is_flash === true]
     );
+
+    // Notifie tous les acheteurs inscrits si le compte est une vente flash
+    if (is_flash === "true" || is_flash === true) {
+      await pool.query(
+        `insert into notifications (buyer_id, message, account_id)
+         select id, $1, $2 from buyers`,
+        [`⚡ Nouveau compte flash disponible : "${title}"`, rows[0].id]
+      );
+    }
+
     res.status(201).json({ id: rows[0].id });
   } catch (err) {
     console.error(err);
@@ -100,6 +110,11 @@ router.put("/accounts/:id", upload.single("photo"), async (req, res) => {
   try {
     const { title, price, description, phone_number, old_price, is_flash } = req.body;
     const photoUrl = req.file ? await uploadPhoto(req.file) : null;
+
+    // On récupère le prix et le titre actuels pour détecter une baisse de prix
+    const current = await pool.query(`select title, price from accounts where id = $1`, [req.params.id]);
+    const currentPrice = current.rows[0]?.price;
+    const currentTitle = current.rows[0]?.title;
 
     const fields = [];
     const values = [];
@@ -120,6 +135,16 @@ router.put("/accounts/:id", upload.single("photo"), async (req, res) => {
       `update accounts set ${fields.join(", ")} where id = $${i}`,
       values
     );
+
+    // Si le prix a baissé, on notifie les acheteurs qui ont ce compte en favori
+    if (price && currentPrice && Number(price) < Number(currentPrice)) {
+      await pool.query(
+        `insert into notifications (buyer_id, message, account_id)
+         select f.buyer_id, $1, $2 from favorites f where f.account_id = $2`,
+        [`💰 Le prix de "${title || currentTitle}" a baissé !`, req.params.id]
+      );
+    }
+
     res.json({ ok: true });
   } catch (err) {
     console.error(err);

@@ -99,12 +99,14 @@
   </div>
 </div>
 
-<!-- Panneau "Mon compte" : favoris + paramètres -->
+<!-- Panneau "Mon compte" : favoris + notifications + sécurité + paramètres -->
 <div id="accountPanel" class="modal-overlay" style="display:none;">
   <div class="modal-box wide">
     <button class="modal-close" id="accountPanelClose">&times;</button>
     <div class="auth-tabs">
       <button class="auth-tab active" id="tabFavorites">Mes favoris</button>
+      <button class="auth-tab" id="tabNotifications">Notifications <span id="notifBadge" class="notif-badge" style="display:none;"></span></button>
+      <button class="auth-tab" id="tabSecurity">Sécurité</button>
       <button class="auth-tab" id="tabSettings">Paramètres</button>
     </div>
 
@@ -113,7 +115,26 @@
       <div id="favoritesEmpty" class="empty-state" style="display:none;">Aucun favori pour le moment.</div>
     </div>
 
+    <div id="notificationsPane" style="display:none;">
+      <div id="notificationsList" class="notif-list"></div>
+      <div id="notificationsEmpty" class="empty-state" style="display:none;">Aucune notification pour le moment.</div>
+    </div>
+
+    <div id="securityPane" style="display:none;">
+      <p style="color:var(--chalk-dim);font-size:13px;margin-top:0;">Voici les dernières connexions à ton compte. Si tu ne reconnais pas un appareil, déconnecte-toi de partout.</p>
+      <div id="sessionsList" class="session-list"></div>
+      <button type="button" class="btn-outline" id="revokeAllBtn" style="width:100%;margin-top:16px;">Déconnecter tous les appareils</button>
+    </div>
+
     <form id="settingsForm" class="auth-form" style="display:none;">
+      <div class="avatar-row">
+        <img id="avatarPreview" class="avatar-preview" src="" alt="Avatar" style="display:none;">
+        <div id="avatarPlaceholder" class="avatar-preview avatar-placeholder">👤</div>
+        <div>
+          <label for="setAvatar" style="margin:0;">Photo de profil</label>
+          <input type="file" id="setAvatar" accept="image/*">
+        </div>
+      </div>
       <label for="setEmail">Email</label>
       <input type="email" id="setEmail" required>
       <label for="setPhone">Téléphone</label>
