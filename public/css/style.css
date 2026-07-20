@@ -482,6 +482,28 @@ a { color: inherit; }
   border-bottom: 1px solid var(--line);
 }
 
+/* --- Bannière chaîne WhatsApp --- */
+.channel-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(90deg, var(--wa-green), var(--wa-green-dark));
+  color: #08130c;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13.5px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 22px;
+  text-align: center;
+}
+.channel-banner svg { flex-shrink: 0; }
+.channel-banner:hover { filter: brightness(1.05); }
+@media (max-width: 480px) {
+  .channel-banner { font-size: 12.5px; }
+}
+
 /* --- Barre de stats (comptes vendus) --- */
 .stats-bar {
   text-align: center;
