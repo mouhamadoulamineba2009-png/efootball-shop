@@ -2,6 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const crypto = require("crypto");
 const path = require("path");
+const PDFDocument = require("pdfkit");
 const { pool, supabase, BUCKET } = require("../db");
 const {
   checkAdminCode,
@@ -48,7 +49,7 @@ router.use(requireAdmin);
 router.get("/accounts", async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `select id, title, price, old_price, description, photo_url, phone_number, is_flash, created_at
+      `select id, title, price, old_price, description, photo_url, phone_number, is_flash, is_sold, views_total, created_at
        from accounts order by created_at desc`
     );
     res.json(rows);
@@ -123,6 +124,140 @@ router.put("/accounts/:id", upload.single("photo"), async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Erreur lors de la modification" });
+  }
+});
+
+// --- Marquer un compte comme vendu (retiré du catalogue public + ajouté à l'historique) ---
+router.put("/accounts/:id/mark-sold", async (req, res) => {
+  try {
+    const { rows } = await pool.query(`select title, price from accounts where id = $1`, [req.params.id]);
+    if (!rows.length) return res.status(404).json({ error: "Compte introuvable" });
+
+    await pool.query(`update accounts set is_sold = true where id = $1`, [req.params.id]);
+    await pool.query(
+      `insert into sales (account_id, title, price) values ($1, $2, $3)`,
+      [req.params.id, rows[0].title, rows[0].price]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// --- Remettre un compte en vente ---
+router.put("/accounts/:id/unmark-sold", async (req, res) => {
+  try {
+    await pool.query(`update accounts set is_sold = false where id = $1`, [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// --- Historique des ventes ---
+router.get("/sales", async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `select id, title, price, sold_at from sales order by sold_at desc limit 200`
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// --- Statistiques (ventes totales, visites du mois) ---
+router.get("/stats", async (req, res) => {
+  try {
+    const soldResult = await pool.query(`select count(*)::int as total_sold from sales`);
+    const visitsResult = await pool.query(
+      `select coalesce(sum(count), 0)::int as visits_this_month
+       from site_visits
+       where date_trunc('month', visit_date) = date_trunc('month', current_date)`
+    );
+    const revenueResult = await pool.query(
+      `select coalesce(sum(price), 0)::numeric as revenue_this_month
+       from sales
+       where date_trunc('month', sold_at) = date_trunc('month', current_date)`
+    );
+    res.json({
+      total_sold: soldResult.rows[0].total_sold,
+      visits_this_month: visitsResult.rows[0].visits_this_month,
+      revenue_this_month: Number(revenueResult.rows[0].revenue_this_month),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// --- Rapport mensuel en PDF (visites + ventes du mois en cours) ---
+router.get("/report.pdf", async (req, res) => {
+  try {
+    const visitsResult = await pool.query(
+      `select visit_date, count from site_visits
+       where date_trunc('month', visit_date) = date_trunc('month', current_date)
+       order by visit_date asc`
+    );
+    const salesResult = await pool.query(
+      `select title, price, sold_at from sales
+       where date_trunc('month', sold_at) = date_trunc('month', current_date)
+       order by sold_at asc`
+    );
+
+    const totalVisits = visitsResult.rows.reduce((sum, r) => sum + r.count, 0);
+    const totalRevenue = salesResult.rows.reduce((sum, r) => sum + Number(r.price), 0);
+    const monthLabel = new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="rapport-${monthLabel.replace(" ", "-")}.pdf"`);
+
+    const doc = new PDFDocument({ margin: 50 });
+    doc.pipe(res);
+
+    doc.fontSize(20).text("Efoot Market SN — Rapport mensuel", { align: "left" });
+    doc.fontSize(12).fillColor("#555").text(`Période : ${monthLabel}`);
+    doc.moveDown(1.5);
+
+    doc.fillColor("#000").fontSize(14).text("Résumé");
+    doc.fontSize(11).fillColor("#333");
+    doc.text(`Visites totales du site ce mois : ${totalVisits}`);
+    doc.text(`Comptes vendus ce mois : ${salesResult.rows.length}`);
+    doc.text(`Revenu total ce mois : ${new Intl.NumberFormat("fr-FR").format(totalRevenue)} FCFA`);
+    doc.moveDown(1.5);
+
+    doc.fillColor("#000").fontSize(14).text("Ventes du mois");
+    doc.moveDown(0.5);
+    if (!salesResult.rows.length) {
+      doc.fontSize(11).fillColor("#666").text("Aucune vente enregistrée ce mois.");
+    } else {
+      salesResult.rows.forEach((sale) => {
+        const date = new Date(sale.sold_at).toLocaleDateString("fr-FR");
+        doc.fontSize(11).fillColor("#333").text(
+          `${date} — ${sale.title} — ${new Intl.NumberFormat("fr-FR").format(sale.price)} FCFA`
+        );
+      });
+    }
+    doc.moveDown(1.5);
+
+    doc.fillColor("#000").fontSize(14).text("Visites par jour");
+    doc.moveDown(0.5);
+    if (!visitsResult.rows.length) {
+      doc.fontSize(11).fillColor("#666").text("Aucune visite enregistrée ce mois.");
+    } else {
+      visitsResult.rows.forEach((v) => {
+        const date = new Date(v.visit_date).toLocaleDateString("fr-FR");
+        doc.fontSize(11).fillColor("#333").text(`${date} — ${v.count} visite(s)`);
+      });
+    }
+
+    doc.end();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur lors de la génération du PDF" });
   }
 });
 

@@ -28,6 +28,18 @@ app.get("/", (req, res) => {
 app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "admin.html"));
 });
+app.get("/comment-ca-marche", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "comment-ca-marche.html"));
+});
+app.get("/faq", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "faq.html"));
+});
+app.get("/conditions", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "conditions.html"));
+});
+app.get("/confidentialite", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "confidentialite.html"));
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

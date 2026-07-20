@@ -1,0 +1,21 @@
+{
+  "name": "Efoot Market SN",
+  "short_name": "Efoot Market",
+  "description": "Comptes eFootball en vente — Efoot Market SN",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1410",
+  "theme_color": "#0b1410",
+  "icons": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}

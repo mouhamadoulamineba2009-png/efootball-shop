@@ -4,11 +4,13 @@ const { pool } = require("../db");
 const router = express.Router();
 
 // GET /api/accounts -> liste publique (le numéro de téléphone n'est JAMAIS inclus ici)
+// Les comptes vendus (is_sold = true) sont automatiquement exclus.
 router.get("/accounts", async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `select id, title, price, old_price, description, photo_url, is_flash, created_at
+      `select id, title, price, old_price, description, photo_url, is_flash, views_today, created_at
        from accounts
+       where coalesce(is_sold, false) = false
        order by created_at desc`
     );
     res.json(rows);
@@ -31,16 +33,78 @@ router.get("/settings", async (req, res) => {
   }
 });
 
+// GET /api/stats -> statistiques publiques (nombre de comptes vendus depuis le lancement)
+router.get("/stats", async (req, res) => {
+  try {
+    const { rows } = await pool.query(`select count(*)::int as total_sold from sales`);
+    res.json({ total_sold: rows[0].total_sold });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
 // GET /api/accounts/:id -> détail public (toujours sans le numéro)
 router.get("/accounts/:id", async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `select id, title, price, old_price, description, photo_url, is_flash, created_at
+      `select id, title, price, old_price, description, photo_url, is_flash, views_today, created_at
        from accounts where id = $1`,
       [req.params.id]
     );
     if (!rows.length) return res.status(404).json({ error: "Introuvable" });
     res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// POST /api/accounts/:id/view -> incrémente les vues du jour pour ce compte
+// Dédupliqué via cookie (1 vue comptée par visiteur et par compte, par jour)
+router.post("/accounts/:id/view", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const cookieName = `v_${id}`;
+    const today = new Date().toISOString().slice(0, 10);
+
+    if (req.cookies?.[cookieName] === today) {
+      const { rows } = await pool.query(`select views_today from accounts where id = $1`, [id]);
+      return res.json({ views_today: rows[0]?.views_today || 0 });
+    }
+
+    const { rows } = await pool.query(
+      `update accounts
+       set views_today = case when views_date = current_date then coalesce(views_today, 0) + 1 else 1 end,
+           views_total = coalesce(views_total, 0) + 1,
+           views_date = current_date
+       where id = $1
+       returning views_today`,
+      [id]
+    );
+
+    res.cookie(cookieName, today, { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: "lax" });
+    res.json({ views_today: rows[0]?.views_today || 0 });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// POST /api/site-visit -> incrémente les visites du site pour aujourd'hui
+// Dédupliqué via cookie (1 visite comptée par visiteur et par jour)
+router.post("/site-visit", async (req, res) => {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    if (req.cookies?.site_visited === today) {
+      return res.json({ ok: true });
+    }
+    await pool.query(
+      `insert into site_visits (visit_date, count) values (current_date, 1)
+       on conflict (visit_date) do update set count = site_visits.count + 1`
+    );
+    res.cookie("site_visited", today, { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: "lax" });
+    res.json({ ok: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Erreur serveur" });

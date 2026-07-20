@@ -73,6 +73,146 @@ a { color: inherit; }
   font-size: 14px;
 }
 
+/* --- Footer --- */
+.site-footer {
+  border-top: 1px solid var(--line);
+  margin-top: 50px;
+  padding: 24px 20px 40px;
+}
+.footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  justify-content: center;
+  padding: 0;
+}
+.footer-inner a {
+  color: var(--chalk-dim);
+  text-decoration: none;
+  font-size: 13.5px;
+}
+.footer-inner a:hover { color: var(--gold); }
+
+/* --- Pages statiques (FAQ, conditions, confidentialité, comment ça marche) --- */
+.static-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+}
+.page-title {
+  font-family: 'Teko', sans-serif;
+  font-size: 40px;
+  font-weight: 600;
+  margin: 10px 0 8px;
+}
+.page-intro {
+  color: var(--chalk-dim);
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.step-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.step-number {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--pitch-black);
+  font-family: 'Teko', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.step-item h3 {
+  font-family: 'Teko', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 4px 0 6px;
+}
+.step-item p {
+  color: var(--chalk-dim);
+  font-size: 14.5px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.faq-item {
+  background: var(--pitch-green);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.faq-item summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 15px;
+  list-style: none;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::before {
+  content: "+";
+  color: var(--gold);
+  font-weight: 700;
+  margin-right: 10px;
+}
+.faq-item[open] summary::before { content: "–"; }
+.faq-item p {
+  color: var(--chalk-dim);
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 10px 0 2px;
+}
+.faq-item a { color: var(--gold); }
+
+.legal-content h2 {
+  font-family: 'Teko', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 26px 0 8px;
+}
+.legal-content h2:first-child { margin-top: 0; }
+.legal-content p, .legal-content li {
+  color: var(--chalk-dim);
+  font-size: 14.5px;
+  line-height: 1.65;
+}
+.legal-content ul { padding-left: 20px; }
+.legal-content a { color: var(--gold); }
+
+.page-footer-nav {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.page-footer-nav a {
+  color: var(--chalk-dim);
+  text-decoration: none;
+  font-size: 14px;
+}
+.page-footer-nav a:hover { color: var(--gold); }
+
 /* --- Bannière promo --- */
 .promo-banner {
   background: linear-gradient(90deg, var(--gold), var(--gold-bright));
@@ -262,6 +402,43 @@ a { color: inherit; }
   margin-bottom: 40px;
   padding-bottom: 30px;
   border-bottom: 1px solid var(--line);
+}
+
+/* --- Barre de stats (comptes vendus) --- */
+.stats-bar {
+  text-align: center;
+  color: var(--gold);
+  font-size: 13.5px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+/* --- Recherche + tri --- */
+.catalog-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 26px;
+  flex-wrap: wrap;
+}
+.catalog-controls input {
+  flex: 1;
+  min-width: 200px;
+}
+.catalog-controls select {
+  background: var(--pitch-black);
+  border: 1px solid var(--line);
+  color: var(--chalk);
+  border-radius: 8px;
+  padding: 11px 13px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+/* --- Badge vues du jour --- */
+.views-badge {
+  color: var(--chalk-dim);
+  font-size: 12px;
+  margin-top: -4px;
 }
 
 /* --- Grid de comptes --- */
@@ -545,6 +722,31 @@ label {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.stat-box {
+  background: var(--pitch-black);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+}
+.stat-value {
+  font-family: 'Teko', sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.stat-label {
+  font-size: 12px;
+  color: var(--chalk-dim);
+  margin-top: 2px;
 }
 
 .admin-item {

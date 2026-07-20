@@ -34,6 +34,16 @@
       <button class="btn-outline" id="logoutBtn">Se déconnecter</button>
     </div>
 
+    <div class="panel" id="statsPanel" style="margin-bottom:24px;">
+      <h2>Statistiques</h2>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="stat-value" id="statSold">–</div><div class="stat-label">Comptes vendus</div></div>
+        <div class="stat-box"><div class="stat-value" id="statVisits">–</div><div class="stat-label">Visites ce mois</div></div>
+        <div class="stat-box"><div class="stat-value" id="statRevenue">–</div><div class="stat-label">Revenu ce mois (FCFA)</div></div>
+      </div>
+      <a href="/api/admin/report.pdf" class="btn-outline" style="display:inline-block;margin-top:14px;text-decoration:none;">📄 Télécharger le rapport PDF du mois</a>
+    </div>
+
     <div class="admin-layout">
       <!-- Formulaire ajout / modif -->
       <div class="panel">
@@ -76,6 +86,12 @@
         <h2>Comptes en vente</h2>
         <div id="adminList" class="admin-list" style="margin-top:14px;"></div>
       </div>
+    </div>
+
+    <div class="panel" style="margin-top:24px;">
+      <h2>Historique des ventes</h2>
+      <div id="salesList" class="admin-list" style="margin-top:14px;"></div>
+      <div id="salesEmpty" style="color:var(--chalk-dim);font-size:14px;display:none;">Aucune vente enregistrée pour l'instant.</div>
     </div>
 
     <div class="panel" style="margin-top:24px;">

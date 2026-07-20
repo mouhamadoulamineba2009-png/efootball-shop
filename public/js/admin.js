@@ -42,6 +42,8 @@ function showDashboard() {
   dashboard.style.display = "block";
   loadAdminAccounts();
   loadBanner();
+  loadSales();
+  loadStats();
 }
 
 let bannerImageRemoved = false;
@@ -188,11 +190,14 @@ function renderAdminList(accounts) {
     <div class="admin-item">
       ${acc.photo_url ? `<img src="${acc.photo_url}" alt="">` : `<div style="width:72px;height:72px;background:var(--pitch-green-light);border-radius:8px;"></div>`}
       <div class="info">
-        <h3>${escapeHtml(acc.title)}</h3>
-        <div class="meta">${new Intl.NumberFormat("fr-FR").format(acc.price)} FCFA · ${escapeHtml(acc.phone_number)} ${acc.is_flash ? "· 🔥 Flash" : ""}</div>
+        <h3>${escapeHtml(acc.title)}${acc.is_sold ? ' <span style="color:var(--chalk-dim);font-size:12px;">(vendu)</span>' : ""}</h3>
+        <div class="meta">${new Intl.NumberFormat("fr-FR").format(acc.price)} FCFA · 👀 ${acc.views_total || 0} vues ${acc.is_flash ? "· 🔥 Flash" : ""}</div>
       </div>
       <div class="actions">
         <button data-edit="${acc.id}">Modifier</button>
+        ${acc.is_sold
+          ? `<button data-unmark-sold="${acc.id}">Remettre en vente</button>`
+          : `<button data-mark-sold="${acc.id}">Marquer vendu</button>`}
         <button class="danger" data-delete="${acc.id}">Supprimer</button>
       </div>
     </div>
@@ -201,7 +206,65 @@ function renderAdminList(accounts) {
   accounts.forEach((acc) => {
     document.querySelector(`[data-edit="${acc.id}"]`).addEventListener("click", () => startEdit(acc));
     document.querySelector(`[data-delete="${acc.id}"]`).addEventListener("click", () => deleteAccount(acc.id));
+    const markBtn = document.querySelector(`[data-mark-sold="${acc.id}"]`);
+    if (markBtn) markBtn.addEventListener("click", () => markSold(acc.id));
+    const unmarkBtn = document.querySelector(`[data-unmark-sold="${acc.id}"]`);
+    if (unmarkBtn) unmarkBtn.addEventListener("click", () => unmarkSold(acc.id));
   });
+}
+
+async function markSold(id) {
+  if (!confirm("Marquer ce compte comme vendu ? Il sera retiré du catalogue public et ajouté à l'historique des ventes.")) return;
+  const res = await fetch(`/api/admin/accounts/${id}/mark-sold`, { method: "PUT", credentials: "include" });
+  if (res.ok) {
+    showToast("Compte marqué comme vendu");
+    loadAdminAccounts();
+    loadSales();
+    loadStats();
+  } else {
+    showToast("Erreur");
+  }
+}
+
+async function unmarkSold(id) {
+  const res = await fetch(`/api/admin/accounts/${id}/unmark-sold`, { method: "PUT", credentials: "include" });
+  if (res.ok) {
+    showToast("Compte remis en vente");
+    loadAdminAccounts();
+  } else {
+    showToast("Erreur");
+  }
+}
+
+async function loadSales() {
+  const res = await fetch("/api/admin/sales", { credentials: "include" });
+  if (!res.ok) return;
+  const sales = await res.json();
+  const list = document.getElementById("salesList");
+  const empty = document.getElementById("salesEmpty");
+  if (!sales.length) {
+    list.innerHTML = "";
+    empty.style.display = "block";
+    return;
+  }
+  empty.style.display = "none";
+  list.innerHTML = sales.map((s) => `
+    <div class="admin-item" style="grid-template-columns:1fr auto;">
+      <div class="info">
+        <h3>${escapeHtml(s.title)}</h3>
+        <div class="meta">${new Date(s.sold_at).toLocaleDateString("fr-FR")} · ${new Intl.NumberFormat("fr-FR").format(s.price)} FCFA</div>
+      </div>
+    </div>
+  `).join("");
+}
+
+async function loadStats() {
+  const res = await fetch("/api/admin/stats", { credentials: "include" });
+  if (!res.ok) return;
+  const stats = await res.json();
+  document.getElementById("statSold").textContent = stats.total_sold;
+  document.getElementById("statVisits").textContent = stats.visits_this_month;
+  document.getElementById("statRevenue").textContent = new Intl.NumberFormat("fr-FR").format(stats.revenue_this_month);
 }
 
 function escapeHtml(str) {

@@ -7,8 +7,11 @@ const stepSpinner = document.getElementById("stepSpinner");
 const stepImgWrap = document.getElementById("stepImgWrap");
 const lightbox = document.getElementById("lightbox");
 const lightboxImg = document.getElementById("lightboxImg");
+const searchInput = document.getElementById("searchInput");
+const sortSelect = document.getElementById("sortSelect");
 
 window.favoriteIds = window.favoriteIds || new Set();
+let allAccounts = [];
 
 function isIOS() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
@@ -77,38 +80,89 @@ function startCountdown(endTimeIso) {
   const timer = setInterval(tick, 1000);
 }
 
+async function loadStats() {
+  try {
+    const res = await fetch("/api/stats");
+    const stats = await res.json();
+    if (stats.total_sold > 0) {
+      const bar = document.getElementById("statsBar");
+      bar.textContent = `🔥 ${stats.total_sold} compte${stats.total_sold > 1 ? "s" : ""} vendu${stats.total_sold > 1 ? "s" : ""} depuis le lancement`;
+      bar.style.display = "block";
+    }
+  } catch (err) {
+    console.warn("Stats indisponibles", err);
+  }
+}
+
 async function loadAccounts() {
   try {
     const res = await fetch("/api/accounts");
-    const accounts = await res.json();
+    allAccounts = await res.json();
 
-    if (!accounts.length) {
+    if (!allAccounts.length) {
       emptyState.style.display = "block";
       return;
     }
 
-    const flashAccounts = accounts.filter((a) => a.is_flash);
-    const normalAccounts = accounts.filter((a) => !a.is_flash);
-
-    if (flashAccounts.length) {
-      document.getElementById("flashSection").style.display = "block";
-      renderAccountsGrid(document.getElementById("flashGrid"), flashAccounts);
-    }
-
-    if (normalAccounts.length) {
-      if (flashAccounts.length) {
-        document.getElementById("catalogTitle").style.display = "block";
-      }
-      renderAccountsGrid(grid, normalAccounts);
-    } else if (!flashAccounts.length) {
-      emptyState.style.display = "block";
-    }
+    renderCatalog();
   } catch (err) {
     console.error(err);
     emptyState.textContent = "Impossible de charger le catalogue pour le moment.";
     emptyState.style.display = "block";
   }
 }
+
+function applySearchAndSort(list) {
+  const query = searchInput.value.trim().toLowerCase();
+  let result = query
+    ? list.filter((a) => a.title.toLowerCase().includes(query) || (a.description || "").toLowerCase().includes(query))
+    : list.slice();
+
+  const sortMode = sortSelect.value;
+  if (sortMode === "price_asc") {
+    result.sort((a, b) => a.price - b.price);
+  } else if (sortMode === "price_desc") {
+    result.sort((a, b) => b.price - a.price);
+  } else {
+    result.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  }
+  return result;
+}
+
+function renderCatalog() {
+  const filtered = applySearchAndSort(allAccounts);
+  const flashAccounts = filtered.filter((a) => a.is_flash);
+  const normalAccounts = filtered.filter((a) => !a.is_flash);
+
+  const flashSection = document.getElementById("flashSection");
+  const catalogTitle = document.getElementById("catalogTitle");
+
+  if (flashAccounts.length) {
+    flashSection.style.display = "block";
+    renderAccountsGrid(document.getElementById("flashGrid"), flashAccounts);
+  } else {
+    flashSection.style.display = "none";
+    document.getElementById("flashGrid").innerHTML = "";
+  }
+
+  if (normalAccounts.length) {
+    catalogTitle.style.display = flashAccounts.length ? "block" : "none";
+    renderAccountsGrid(grid, normalAccounts);
+    emptyState.style.display = "none";
+  } else {
+    grid.innerHTML = "";
+    catalogTitle.style.display = "none";
+    if (!flashAccounts.length) {
+      emptyState.textContent = "Aucun résultat pour cette recherche.";
+      emptyState.style.display = "block";
+    } else {
+      emptyState.style.display = "none";
+    }
+  }
+}
+
+searchInput.addEventListener("input", renderCatalog);
+sortSelect.addEventListener("change", renderCatalog);
 
 // Rend une liste de comptes dans un conteneur donné et branche tous les événements
 // (achat WhatsApp, favori, aperçu photo). Réutilisé pour le catalogue ET "Mes favoris".
@@ -127,6 +181,9 @@ function renderAccountsGrid(container, accounts) {
     if (photo && acc.photo_url) {
       photo.addEventListener("click", () => openLightbox(acc.photo_url));
     }
+
+    // Enregistre une vue pour ce compte (dédupliqué côté serveur via cookie)
+    fetch(`/api/accounts/${acc.id}/view`, { method: "POST", credentials: "include" }).catch(() => {});
   });
   applyFavoriteStates(container);
 }
@@ -155,6 +212,9 @@ function renderCard(acc) {
   const badgesTop = (flashBadge || promoBadge)
     ? `<div class="badge-stack">${flashBadge}${promoBadge}</div>`
     : "";
+  const viewsBadge = acc.views_today > 0
+    ? `<div class="views-badge">👀 ${acc.views_today} vue${acc.views_today > 1 ? "s" : ""} aujourd'hui</div>`
+    : "";
 
   return `
     <div class="card${acc.is_flash ? " flash-card" : ""}">
@@ -168,6 +228,7 @@ function renderCard(acc) {
       <div class="card-body">
         <div class="card-title">${escapeHtml(acc.title)}</div>
         <div class="card-desc">${escapeHtml(acc.description || "")}</div>
+        ${viewsBadge}
         <button class="btn-wa" data-buy="${acc.id}">
           ${waIcon()} Acheter via WhatsApp
         </button>
@@ -263,5 +324,16 @@ function slugify(str) {
     .replace(/(^-|-$)/g, "") || "compte-efootball";
 }
 
+// Enregistre une visite du site (dédupliqué côté serveur via cookie, 1 fois par jour)
+fetch("/api/site-visit", { method: "POST", credentials: "include" }).catch(() => {});
+
+// Service worker (installation en app sur mobile)
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}
+
 loadBanner();
+loadStats();
 loadAccounts();
