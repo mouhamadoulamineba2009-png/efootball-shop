@@ -161,5 +161,320 @@
 
 <script src="/js/buyer.js"></script>
 <script src="/js/catalog.js"></script>
+<!--
+  COMMENT INTÉGRER CE POPUP
+  =========================
+  1. Copie tout le bloc ci-dessous (HTML + CSS + JS) et colle-le juste avant
+     la balise <!--
+  COMMENT INTÉGRER CE POPUP
+  =========================
+  1. Copie tout le bloc ci-dessous (HTML + CSS + JS) et colle-le juste avant
+     la balise </body> de la page qui s'affiche APRÈS une inscription réussie
+     (ex: la page d'accueil ou le tableau de bord après signup).
+
+  2. Dans ton code d'inscription (le endroit où tu confirmes que le compte
+     vient d'être créé avec succès, côté client), appelle simplement :
+
+         showWelcomeModal();
+
+     Par exemple, juste après le message "Compte créé avec succès" ou
+     juste après la redirection post-inscription.
+
+  3. Le popup ne s'affiche qu'une seule fois par compte grâce à
+     localStorage — si l'utilisateur revient, il ne le reverra pas,
+     sauf si tu changes cette logique.
+-->
+
+<div id="welcomeModalOverlay" class="wm-overlay" hidden>
+  <div class="wm-modal">
+    <button class="wm-close" onclick="closeWelcomeModal()" aria-label="Fermer">✕</button>
+    <div class="wm-badge">👋 Bienvenue</div>
+    <h2 class="wm-title">Bienvenue sur Efoot Market SN !</h2>
+    <p class="wm-text">
+      Avant de passer commande, découvrez qui se cache derrière la boutique
+      pour acheter en toute confiance.
+    </p>
+    <div class="wm-actions">
+      <a href="/about.html" class="wm-cta">Voir la page</a>
+      <button class="wm-later" onclick="closeWelcomeModal()">Plus tard</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .wm-overlay{
+    position: fixed; inset: 0;
+    background: rgba(7, 42, 32, 0.75);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+    animation: wmFadeIn 0.25s ease;
+  }
+  .wm-overlay[hidden]{ display:none; }
+  @keyframes wmFadeIn{ from{opacity:0;} to{opacity:1;} }
+
+  .wm-modal{
+    position: relative;
+    background: linear-gradient(160deg, #0B3D2E 0%, #12140F 100%);
+    border: 1px solid rgba(242,183,5,0.3);
+    border-radius: 16px;
+    max-width: 380px;
+    width: 100%;
+    padding: 32px 28px;
+    text-align: center;
+    color: #F5F1E6;
+    font-family: 'Work Sans', Arial, sans-serif;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+    animation: wmPop 0.25s ease;
+  }
+  @keyframes wmPop{ from{ transform: scale(0.95); opacity:0; } to{ transform: scale(1); opacity:1; } }
+
+  .wm-close{
+    position:absolute; top:12px; right:14px;
+    background:none; border:none; color: rgba(245,241,230,0.6);
+    font-size: 16px; cursor:pointer;
+  }
+  .wm-badge{
+    display:inline-block;
+    font-size:12px; letter-spacing:0.1em; text-transform:uppercase;
+    color:#F2B705; margin-bottom:12px;
+  }
+  .wm-title{
+    font-family:'Rajdhani', Arial, sans-serif;
+    font-weight:700; font-size:22px; margin-bottom:10px;
+  }
+  .wm-text{
+    font-size:14px; line-height:1.6; color: rgba(245,241,230,0.85);
+    margin-bottom:22px;
+  }
+  .wm-actions{ display:flex; flex-direction:column; gap:10px; }
+  .wm-cta{
+    background:#F2B705; color:#12140F; font-weight:600;
+    text-decoration:none; padding:12px; border-radius:10px; font-size:14px;
+  }
+  .wm-later{
+    background:none; border:none; color: rgba(245,241,230,0.6);
+    font-size:13px; cursor:pointer; padding:6px;
+  }
+</style>
+
+<script>
+  function showWelcomeModal(){
+    if (localStorage.getItem('efoot_welcome_seen')) return;
+    document.getElementById('welcomeModalOverlay').hidden = false;
+  }
+  function closeWelcomeModal(){
+    document.getElementById('welcomeModalOverlay').hidden = true;
+    localStorage.setItem('efoot_welcome_seen', '1');
+  }
+</script>
+
+</body> de la page qui s'affiche APRÈS une inscription réussie
+     (ex: la page d'accueil ou le tableau de bord après signup).
+
+  2. Dans ton code d'inscription (le endroit où tu confirmes que le compte
+     vient d'être créé avec succès, côté client), appelle simplement :
+
+         showWelcomeModal();
+
+     Par exemple, juste après le message "Compte créé avec succès" ou
+     juste après la redirection post-inscription.
+
+  3. Le popup ne s'affiche qu'une seule fois par compte grâce à
+     localStorage — si l'utilisateur revient, il ne le reverra pas,
+     sauf si tu changes cette logique.
+-->
+
+<div id="welcomeModalOverlay" class="wm-overlay" hidden>
+  <div class="wm-modal">
+    <button class="wm-close" onclick="closeWelcomeModal()" aria-label="Fermer">✕</button>
+    <div class="wm-badge">👋 Bienvenue</div>
+    <h2 class="wm-title">Bienvenue sur Efoot Market SN !</h2>
+    <p class="wm-text">
+      Avant de passer commande, découvrez qui se cache derrière la boutique
+      pour acheter en toute confiance.
+    </p>
+    <div class="wm-actions">
+      <a href="/about.html" class="wm-cta">Voir la page</a>
+      <button class="wm-later" onclick="closeWelcomeModal()">Plus tard</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .wm-overlay{
+    position: fixed; inset: 0;
+    background: rgba(7, 42, 32, 0.75);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+    animation: wmFadeIn 0.25s ease;
+  }
+  .wm-overlay[hidden]{ display:none; }
+  @keyframes wmFadeIn{ from{opacity:0;} to{opacity:1;} }
+
+  .wm-modal{
+    position: relative;
+    background: linear-gradient(160deg, #0B3D2E 0%, #12140F 100%);
+    border: 1px solid rgba(242,183,5,0.3);
+    border-radius: 16px;
+    max-width: 380px;
+    width: 100%;
+    padding: 32px 28px;
+    text-align: center;
+    color: #F5F1E6;
+    font-family: 'Work Sans', Arial, sans-serif;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+    animation: wmPop 0.25s ease;
+  }
+  @keyframes wmPop{ from{ transform: scale(0.95); opacity:0; } to{ transform: scale(1); opacity:1; } }
+
+  .wm-close{
+    position:absolute; top:12px; right:14px;
+    background:none; border:none; color: rgba(245,241,230,0.6);
+    font-size: 16px; cursor:pointer;
+  }
+  .wm-badge{
+    display:inline-block;
+    font-size:12px; letter-spacing:0.1em; text-transform:uppercase;
+    color:#F2B705; margin-bottom:12px;
+  }
+  .wm-title{
+    font-family:'Rajdhani', Arial, sans-serif;
+    font-weight:700; font-size:22px; margin-bottom:10px;
+  }
+  .wm-text{
+    font-size:14px; line-height:1.6; color: rgba(245,241,230,0.85);
+    margin-bottom:22px;
+  }
+  .wm-actions{ display:flex; flex-direction:column; gap:10px; }
+  .wm-cta{
+    background:#F2B705; color:#12140F; font-weight:600;
+    text-decoration:none; padding:12px; border-radius:10px; font-size:14px;
+  }
+  .wm-later{
+    background:none; border:none; color: rgba(245,241,230,0.6);
+    font-size:13px; cursor:pointer; padding:6px;
+  }
+</style>
+
+<script>
+  function showWelcomeModal(){
+    if (localStorage.getItem('efoot_welcome_seen')) return;
+    document.getElementById('welcomeModalOverlay').hidden = false;
+  }
+  function closeWelcomeModal(){
+    document.getElementById('welcomeModalOverlay').hidden = true;
+    localStorage.setItem('efoot_welcome_seen', '1');
+  }
+</script>
+
+<!--
+  COMMENT INTÉGRER CE POPUP
+  =========================
+  1. Copie tout le bloc ci-dessous (HTML + CSS + JS) et colle-le juste avant
+     la balise </body> de la page qui s'affiche APRÈS une inscription réussie
+     (ex: la page d'accueil ou le tableau de bord après signup).
+
+  2. Dans ton code d'inscription (le endroit où tu confirmes que le compte
+     vient d'être créé avec succès, côté client), appelle simplement :
+
+         showWelcomeModal();
+
+     Par exemple, juste après le message "Compte créé avec succès" ou
+     juste après la redirection post-inscription.
+
+  3. Le popup ne s'affiche qu'une seule fois par compte grâce à
+     localStorage — si l'utilisateur revient, il ne le reverra pas,
+     sauf si tu changes cette logique.
+-->
+
+<div id="welcomeModalOverlay" class="wm-overlay" hidden>
+  <div class="wm-modal">
+    <button class="wm-close" onclick="closeWelcomeModal()" aria-label="Fermer">✕</button>
+    <div class="wm-badge">👋 Bienvenue</div>
+    <h2 class="wm-title">Bienvenue sur Efoot Market SN !</h2>
+    <p class="wm-text">
+      Avant de passer commande, découvrez qui se cache derrière la boutique
+      pour acheter en toute confiance.
+    </p>
+    <div class="wm-actions">
+      <a href="/about.html" class="wm-cta">Voir la page</a>
+      <button class="wm-later" onclick="closeWelcomeModal()">Plus tard</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .wm-overlay{
+    position: fixed; inset: 0;
+    background: rgba(7, 42, 32, 0.75);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+    animation: wmFadeIn 0.25s ease;
+  }
+  .wm-overlay[hidden]{ display:none; }
+  @keyframes wmFadeIn{ from{opacity:0;} to{opacity:1;} }
+
+  .wm-modal{
+    position: relative;
+    background: linear-gradient(160deg, #0B3D2E 0%, #12140F 100%);
+    border: 1px solid rgba(242,183,5,0.3);
+    border-radius: 16px;
+    max-width: 380px;
+    width: 100%;
+    padding: 32px 28px;
+    text-align: center;
+    color: #F5F1E6;
+    font-family: 'Work Sans', Arial, sans-serif;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+    animation: wmPop 0.25s ease;
+  }
+  @keyframes wmPop{ from{ transform: scale(0.95); opacity:0; } to{ transform: scale(1); opacity:1; } }
+
+  .wm-close{
+    position:absolute; top:12px; right:14px;
+    background:none; border:none; color: rgba(245,241,230,0.6);
+    font-size: 16px; cursor:pointer;
+  }
+  .wm-badge{
+    display:inline-block;
+    font-size:12px; letter-spacing:0.1em; text-transform:uppercase;
+    color:#F2B705; margin-bottom:12px;
+  }
+  .wm-title{
+    font-family:'Rajdhani', Arial, sans-serif;
+    font-weight:700; font-size:22px; margin-bottom:10px;
+  }
+  .wm-text{
+    font-size:14px; line-height:1.6; color: rgba(245,241,230,0.85);
+    margin-bottom:22px;
+  }
+  .wm-actions{ display:flex; flex-direction:column; gap:10px; }
+  .wm-cta{
+    background:#F2B705; color:#12140F; font-weight:600;
+    text-decoration:none; padding:12px; border-radius:10px; font-size:14px;
+  }
+  .wm-later{
+    background:none; border:none; color: rgba(245,241,230,0.6);
+    font-size:13px; cursor:pointer; padding:6px;
+  }
+</style>
+
+<script>
+  function showWelcomeModal(){
+    if (localStorage.getItem('efoot_welcome_seen')) return;
+    document.getElementById('welcomeModalOverlay').hidden = false;
+  }
+  function closeWelcomeModal(){
+    document.getElementById('welcomeModalOverlay').hidden = true;
+    localStorage.setItem('efoot_welcome_seen', '1');
+  }
+</script>
+
 </body>
 </html>

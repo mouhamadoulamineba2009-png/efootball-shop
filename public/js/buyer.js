@@ -87,6 +87,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
     if (!res.ok) { errEl.textContent = data.error || "Connexion impossible"; return; }
     closeAuthModal();
     checkBuyerSession();
+    showWelcomeModal();
   } catch {
     errEl.textContent = "Erreur réseau";
   }
