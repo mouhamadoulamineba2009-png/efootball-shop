@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>À propos — Efoot Market SN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pitch: #0B3D2E;
+    --pitch-deep: #072A20;
+    --gold: #F2B705;
+    --gold-dim: #C99A08;
+    --cream: #F5F1E6;
+    --sage: #4C7A64;
+    --charcoal: #12140F;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background: var(--pitch-deep);
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(242,183,5,0.06), transparent 40%),
+      repeating-linear-gradient(180deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 2px, transparent 2px, transparent 80px);
+    color: var(--cream);
+    font-family: 'Work Sans', sans-serif;
+    min-height: 100vh;
+    padding: 48px 20px 80px;
+  }
+  .wrap{ max-width: 880px; margin: 0 auto; }
+  .eyebrow{
+    font-family:'Rajdhani', sans-serif;
+    letter-spacing: 0.35em;
+    font-size: 12px;
+    color: var(--gold);
+    text-transform: uppercase;
+    text-align:center;
+    margin-bottom: 10px;
+  }
+  h1{
+    font-family:'Rajdhani', sans-serif;
+    font-weight:700;
+    text-align:center;
+    font-size: clamp(28px, 5vw, 42px);
+    color: var(--cream);
+    margin-bottom: 40px;
+  }
+  h1 span{ color: var(--gold); }
+
+  .card{
+    position: relative;
+    background: linear-gradient(160deg, var(--pitch) 0%, var(--charcoal) 100%);
+    border: 1px solid rgba(242,183,5,0.25);
+    border-radius: 18px;
+    padding: 36px;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 36px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+  .card::before{
+    content:"";
+    position:absolute; top:-40%; right:-20%;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(242,183,5,0.12), transparent 70%);
+  }
+  @media (max-width: 640px){
+    .card{ grid-template-columns: 1fr; padding: 28px; }
+  }
+
+  .portrait-frame{
+    position: relative;
+    border: 2px solid var(--gold);
+    border-radius: 14px;
+    padding: 8px;
+    background: var(--charcoal);
+    height: fit-content;
+  }
+  .portrait-frame img{
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    border-radius: 8px;
+    display:block;
+    filter: saturate(1.05) contrast(1.03);
+  }
+  .rating{
+    position:absolute; top: -14px; left: -14px;
+    background: var(--gold);
+    color: var(--charcoal);
+    font-family:'Rajdhani', sans-serif;
+    font-weight:700;
+    font-size: 20px;
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+  }
+
+  .name{
+    font-family:'Rajdhani', sans-serif;
+    font-weight:700;
+    font-size: clamp(24px, 4vw, 30px);
+    color: var(--cream);
+  }
+  .role{
+    color: var(--gold);
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .bio{
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: rgba(245,241,230,0.85);
+    margin-bottom: 22px;
+  }
+
+  .stats{
+    display:flex; flex-wrap:wrap; gap: 10px;
+    margin-bottom: 22px;
+  }
+  .stat{
+    background: rgba(242,183,5,0.08);
+    border: 1px solid rgba(242,183,5,0.3);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+  .stat b{ color: var(--gold); font-family:'Rajdhani',sans-serif; font-size:14px; }
+
+  .cta{
+    display:inline-flex; align-items:center; gap:10px;
+    background: var(--gold);
+    color: var(--charcoal);
+    font-weight:600;
+    text-decoration:none;
+    padding: 13px 22px;
+    border-radius: 10px;
+    font-size: 15px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .cta:hover{ transform: translateY(-2px); box-shadow: 0 8px 20px rgba(242,183,5,0.35); }
+
+  .footnote{
+    text-align:center;
+    margin-top: 28px;
+    font-size: 13px;
+    color: rgba(245,241,230,0.55);
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="eyebrow">Efoot Market SN</div>
+    <h1>La personne derrière <span>la boutique</span></h1>
+
+    <div class="card">
+      <div class="portrait-frame">
+        <div class="rating">✓</div>
+        <img src="images/lamine.jpg" alt="Mouhamadou Lamine Ba">
+      </div>
+
+      <div>
+        <div class="name">Mouhamadou Lamine Ba</div>
+        <div class="role">Fondateur · Nioro du Rip, Sénégal</div>
+        <p class="bio">
+          Je m'appelle Mouhamadou Lamine Ba, basé à Nioro du Rip. Je vends des comptes
+          eFootball depuis plusieurs mois avec sérieux et rapidité. Mon objectif : vous
+          offrir des comptes fiables, une livraison rapide et un service après-vente
+          réactif via WhatsApp.
+        </p>
+
+        <div class="stats">
+          <div class="stat"><b>📱 Rapide</b> — réponse WhatsApp</div>
+          <div class="stat"><b>🔒 Vérifiés</b> — comptes contrôlés</div>
+          <div class="stat"><b>⚡ Immédiate</b> — livraison</div>
+        </div>
+
+        <a class="cta" href="https://wa.me/221771961314" target="_blank" rel="noopener">
+          💬 Discuter sur WhatsApp
+        </a>
+      </div>
+    </div>
+
+    <p class="footnote">Nioro du Rip, région de Kaolack — Sénégal</p>
+  </div>
+</body>
+</html>
