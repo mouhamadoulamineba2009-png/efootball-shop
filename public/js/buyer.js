@@ -70,6 +70,8 @@ function switchAuthTab(tab) {
 document.getElementById("tabLogin").addEventListener("click", () => switchAuthTab("login"));
 document.getElementById("tabRegister").addEventListener("click", () => switchAuthTab("register"));
 
+let pendingBuyerId = null;
+
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = document.getElementById("loginEmail").value;
@@ -85,11 +87,22 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) { errEl.textContent = data.error || "Connexion impossible"; return; }
+    pendingBuyerId = data.buyerId;
+    const code = prompt("Un code de confirmation a ete envoye par email. Entrez-le ici :");
+    if (!code) { errEl.textContent = "Code requis pour se connecter"; return; }
+    const verifyRes = await fetch("/api/buyer/login/verify-code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ buyerId: pendingBuyerId, code }),
+    });
+    const verifyData = await verifyRes.json().catch(() => ({}));
+    if (!verifyRes.ok) { errEl.textContent = verifyData.error || "Code incorrect"; return; }
     closeAuthModal();
     checkBuyerSession();
     showWelcomeModal();
   } catch {
-    errEl.textContent = "Erreur réseau";
+    errEl.textContent = "Erreur reseau";
   }
 });
 

@@ -1,6 +1,7 @@
 const express = require("express");
 const multer = require("multer");
 const { pool, uploadImage } = require("../db");
+const { sendLoginCode } = require("../mailer");
 const {
   hashPassword,
   checkPassword,
@@ -56,14 +57,64 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const { rows } = await pool.query(
-      `select id, password_hash, session_version from buyers where email = $1`,
+      `select id, email, password_hash, session_version from buyers where email = $1`,
       [(email || "").toLowerCase()]
     );
     if (!rows.length || !checkPassword(password || "", rows[0].password_hash)) {
       return res.status(401).json({ error: "Email ou mot de passe incorrect" });
     }
-    issueBuyerCookie(res, rows[0].id, rows[0].session_version);
-    await logBuyerSession(rows[0].id, req);
+
+    const buyer = rows[0];
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    await pool.query(
+      `insert into login_otps (buyer_id, code, expires_at) values ($1, $2, $3)`,
+      [buyer.id, code, expiresAt]
+    );
+
+    await sendLoginCode(buyer.email, code);
+
+    res.json({ ok: true, requireCode: true, buyerId: buyer.id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+router.post("/login/verify-code", async (req, res) => {
+  try {
+    const { buyerId, code } = req.body;
+    const { rows } = await pool.query(
+      `select id, expires_at, used from login_otps
+       where buyer_id = $1 and code = $2
+       order by created_at desc limit 1`,
+      [buyerId, code]
+    );
+
+    if (!rows.length) {
+      return res.status(401).json({ error: "Code incorrect" });
+    }
+    const otp = rows[0];
+    if (otp.used) {
+      return res.status(401).json({ error: "Ce code a déjà été utilisé" });
+    }
+    if (new Date(otp.expires_at) < new Date()) {
+      return res.status(401).json({ error: "Ce code a expiré, reconnectez-vous" });
+    }
+
+    await pool.query(`update login_otps set used = true where id = $1`, [otp.id]);
+
+    const { rows: buyerRows } = await pool.query(
+      `select id, session_version from buyers where id = $1`,
+      [buyerId]
+    );
+    if (!buyerRows.length) {
+      return res.status(401).json({ error: "Compte introuvable" });
+    }
+
+    issueBuyerCookie(res, buyerRows[0].id, buyerRows[0].session_version);
+    await logBuyerSession(buyerRows[0].id, req);
     res.json({ ok: true });
   } catch (err) {
     console.error(err);
