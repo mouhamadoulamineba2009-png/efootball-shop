@@ -1,7 +1,7 @@
 const express = require("express");
 const multer = require("multer");
 const { pool, uploadImage } = require("../db");
-const { sendLoginCode } = require("../mailer");
+const { sendLoginCode, sendResetCode } = require("../mailer");
 const {
   hashPassword,
   checkPassword,
@@ -286,6 +286,85 @@ router.get("/notifications/unread-count", requireBuyer, async (req, res) => {
 router.post("/notifications/read-all", requireBuyer, async (req, res) => {
   try {
     await pool.query(`update notifications set is_read = true where buyer_id = $1`, [req.buyerId]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// --- Mot de passe oublié ---
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const { rows } = await pool.query(
+      `select id, email from buyers where email = $1`,
+      [(email || "").toLowerCase()]
+    );
+
+    // Toujours répondre "ok" même si l'email n'existe pas (sécurité : ne pas révéler quels emails sont inscrits)
+    if (!rows.length) {
+      return res.json({ ok: true });
+    }
+
+    const buyer = rows[0];
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    await pool.query(
+      `insert into password_resets (buyer_id, code, expires_at) values ($1, $2, $3)`,
+      [buyer.id, code, expiresAt]
+    );
+
+    await sendResetCode(buyer.email, code);
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { email, code, newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ error: "Le mot de passe doit contenir au moins 6 caractères" });
+    }
+
+    const { rows: buyerRows } = await pool.query(
+      `select id from buyers where email = $1`,
+      [(email || "").toLowerCase()]
+    );
+    if (!buyerRows.length) {
+      return res.status(400).json({ error: "Code invalide" });
+    }
+    const buyerId = buyerRows[0].id;
+
+    const { rows } = await pool.query(
+      `select id, expires_at, used from password_resets
+       where buyer_id = $1 and code = $2
+       order by created_at desc limit 1`,
+      [buyerId, code]
+    );
+
+    if (!rows.length) {
+      return res.status(400).json({ error: "Code invalide" });
+    }
+    const reset = rows[0];
+    if (reset.used) {
+      return res.status(400).json({ error: "Ce code a déjà été utilisé" });
+    }
+    if (new Date(reset.expires_at) < new Date()) {
+      return res.status(400).json({ error: "Ce code a expiré, refaites une demande" });
+    }
+
+    await pool.query(`update password_resets set used = true where id = $1`, [reset.id]);
+
+    const newHash = hashPassword(newPassword);
+    await pool.query(`update buyers set password_hash = $1 where id = $2`, [newHash, buyerId]);
+
     res.json({ ok: true });
   } catch (err) {
     console.error(err);

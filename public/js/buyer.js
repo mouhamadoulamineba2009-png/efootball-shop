@@ -353,3 +353,42 @@ function showBuyerToast(msg) {
 }
 
 checkBuyerSession();
+
+document.getElementById("forgotPasswordLink").addEventListener("click", async (e) => {
+  e.preventDefault();
+  const email = prompt("Entrez votre email pour recevoir un code de reinitialisation :");
+  if (!email) return;
+
+  try {
+    await fetch("/api/buyer/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+  } catch {
+    alert("Erreur reseau, reessayez.");
+    return;
+  }
+
+  const code = prompt("Un code a ete envoye par email (s'il existe un compte avec cet email). Entrez le code recu :");
+  if (!code) return;
+
+  const newPassword = prompt("Entrez votre nouveau mot de passe (6 caracteres minimum) :");
+  if (!newPassword) return;
+
+  try {
+    const res = await fetch("/api/buyer/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, code, newPassword }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      alert(data.error || "Impossible de reinitialiser le mot de passe");
+      return;
+    }
+    alert("Mot de passe mis a jour ! Vous pouvez vous connecter.");
+  } catch {
+    alert("Erreur reseau, reessayez.");
+  }
+});
