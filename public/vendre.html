@@ -97,9 +97,6 @@
     <label for="sellContact">Ton numéro WhatsApp</label>
     <input type="tel" id="sellContact" placeholder="Ex: 77 123 45 67" required>
 
-    <label for="sellDescription">Décris ton compte (niveau, joueurs, coins, plateforme...)</label>
-    <textarea id="sellDescription" required></textarea>
-
     <label for="sellPrice">Prix souhaité (FCFA)</label>
     <input type="number" id="sellPrice" min="0" required>
 
@@ -114,14 +111,12 @@ document.getElementById("sellForm").addEventListener("submit", function(e){
   e.preventDefault();
   const name = document.getElementById("sellName").value.trim();
   const contact = document.getElementById("sellContact").value.trim();
-  const description = document.getElementById("sellDescription").value.trim();
   const price = document.getElementById("sellPrice").value.trim();
 
   const message =
     "Bonjour, je veux vendre mon compte eFootball.%0A%0A" +
     "Nom : " + encodeURIComponent(name) + "%0A" +
     "Contact WhatsApp : " + encodeURIComponent(contact) + "%0A" +
-    "Description : " + encodeURIComponent(description) + "%0A" +
     "Prix souhaité : " + encodeURIComponent(price) + " FCFA";
 
   window.open("https://wa.me/221771961314?text=" + message, "_blank");
