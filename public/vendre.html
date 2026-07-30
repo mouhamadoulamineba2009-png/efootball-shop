@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vendre mon compte — Efoot Market SN</title>
+<link rel="icon" type="image/png" href="/favicon-32.png">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  .sell-wrap{
+    max-width: 560px;
+    margin: 48px auto 80px;
+    padding: 0 20px;
+  }
+  .sell-title{
+    font-size: clamp(24px, 5vw, 32px);
+    font-weight: 700;
+    color: var(--chalk);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .sell-title span{ color: var(--gold); }
+  .sell-sub{
+    color: var(--chalk-dim);
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+  .sell-form{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px;
+  }
+  .sell-form label{
+    font-size: 13px;
+    color: var(--chalk-dim);
+    margin-bottom: -8px;
+  }
+  .sell-form input,
+  .sell-form textarea{
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: var(--chalk);
+    font-size: 15px;
+    font-family: inherit;
+  }
+  .sell-form textarea{ resize: vertical; min-height: 90px; }
+  .sell-form input:focus,
+  .sell-form textarea:focus{
+    outline: none;
+    border-color: var(--gold);
+  }
+  .sell-submit{
+    background: var(--gold);
+    color: #12140F;
+    border: none;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 6px;
+  }
+  .sell-submit:hover{ background: var(--gold-bright); }
+  .sell-note{
+    font-size: 12.5px;
+    color: var(--chalk-dim);
+    text-align: center;
+    margin-top: 14px;
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <div class="brand">EFOOT MARKET<span> SN</span></div>
+    <div class="tagline">Comptes eFootball vérifiés — paiement en FCFA</div>
+    <nav class="main-nav"><a href="/about.html">À propos</a></nav>
+  </div>
+</header>
+
+<main class="sell-wrap">
+  <div class="sell-title">Vendre <span>mon compte</span></div>
+  <div class="sell-sub">Remplis le formulaire, un message WhatsApp pré-rempli s'ouvrira pour nous l'envoyer directement.</div>
+
+  <form class="sell-form" id="sellForm">
+    <label for="sellName">Ton nom</label>
+    <input type="text" id="sellName" required>
+
+    <label for="sellContact">Ton numéro WhatsApp</label>
+    <input type="tel" id="sellContact" placeholder="Ex: 77 123 45 67" required>
+
+    <label for="sellDescription">Décris ton compte (niveau, joueurs, coins, plateforme...)</label>
+    <textarea id="sellDescription" required></textarea>
+
+    <label for="sellPrice">Prix souhaité (FCFA)</label>
+    <input type="number" id="sellPrice" min="0" required>
+
+    <button type="submit" class="sell-submit">💬 Envoyer sur WhatsApp</button>
+  </form>
+
+  <div class="sell-note">Aucune donnée n'est enregistrée sur le site — tout part directement dans WhatsApp.</div>
+</main>
+
+<script>
+document.getElementById("sellForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  const name = document.getElementById("sellName").value.trim();
+  const contact = document.getElementById("sellContact").value.trim();
+  const description = document.getElementById("sellDescription").value.trim();
+  const price = document.getElementById("sellPrice").value.trim();
+
+  const message =
+    "Bonjour, je veux vendre mon compte eFootball.%0A%0A" +
+    "Nom : " + encodeURIComponent(name) + "%0A" +
+    "Contact WhatsApp : " + encodeURIComponent(contact) + "%0A" +
+    "Description : " + encodeURIComponent(description) + "%0A" +
+    "Prix souhaité : " + encodeURIComponent(price) + " FCFA";
+
+  window.open("https://wa.me/221771961314?text=" + message, "_blank");
+});
+</script>
+
+</body>
+</html>
