@@ -171,7 +171,158 @@
   COMMENT INTÉGRER CE POPUP
   =========================
   1. Copie tout le bloc ci-dessous (HTML + CSS + JS) et colle-le juste avant
-     la balise </body> de la page qui s'affiche APRÈS une inscription réussie
+     la balise <!--
+  MODAL STYLE POUR REMPLACER LES prompt() DU NAVIGATEUR
+  =======================================================
+  Colle ce bloc entier juste avant la balise </body> de index.html
+  (en dessous du popup de bienvenue, par exemple).
+-->
+
+<div id="inputModalOverlay" class="im-overlay" hidden>
+  <div class="im-modal">
+    <button class="im-close" onclick="closeInputModal(null)" aria-label="Fermer">✕</button>
+    <h3 class="im-title" id="imTitle"></h3>
+    <p class="im-message" id="imMessage"></p>
+    <div id="imFields"></div>
+    <div class="im-actions">
+      <button class="im-confirm" id="imConfirmBtn">Valider</button>
+      <button class="im-cancel" onclick="closeInputModal(null)">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .im-overlay{
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+  }
+  .im-overlay[hidden]{ display:none; }
+
+  .im-modal{
+    position: relative;
+    background: #12140F;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    max-width: 380px;
+    width: 100%;
+    padding: 28px 24px;
+    color: var(--chalk);
+    font-family: inherit;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+  }
+  .im-close{
+    position:absolute; top:12px; right:14px;
+    background:none; border:none; color: var(--chalk-dim);
+    font-size: 16px; cursor:pointer;
+  }
+  .im-title{
+    font-size: 18px; font-weight:700; margin-bottom: 8px; color: var(--chalk);
+  }
+  .im-message{
+    font-size: 13.5px; color: var(--chalk-dim); line-height:1.5; margin-bottom: 18px;
+  }
+  #imFields{
+    display:flex; flex-direction:column; gap:12px; margin-bottom: 20px;
+  }
+  #imFields label{
+    font-size: 12.5px; color: var(--chalk-dim); margin-bottom: -6px; display:block;
+  }
+  #imFields input{
+    width:100%;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 11px 13px;
+    color: var(--chalk);
+    font-size: 15px;
+    font-family: inherit;
+  }
+  #imFields input:focus{ outline:none; border-color: var(--gold); }
+
+  .im-actions{ display:flex; flex-direction:column; gap:10px; }
+  .im-confirm{
+    background: var(--gold); color:#12140F; font-weight:700;
+    border:none; padding:12px; border-radius:10px; font-size:14px; cursor:pointer;
+  }
+  .im-confirm:hover{ background: var(--gold-bright); }
+  .im-cancel{
+    background:none; border:none; color: var(--chalk-dim);
+    font-size:13px; cursor:pointer; padding:6px;
+  }
+</style>
+
+<script>
+  let _imResolve = null;
+
+  // fields: [{ id, label, type }]  ex: [{id:"code", label:"Code recu", type:"text"}]
+  function showInputModal(title, message, fields, confirmLabel){
+    return new Promise((resolve) => {
+      _imResolve = resolve;
+      document.getElementById("imTitle").textContent = title;
+      document.getElementById("imMessage").textContent = message || "";
+      document.getElementById("imConfirmBtn").textContent = confirmLabel || "Valider";
+
+      const container = document.getElementById("imFields");
+      container.innerHTML = "";
+      fields.forEach((f) => {
+        const label = document.createElement("label");
+        label.textContent = f.label;
+        label.setAttribute("for", "imField_" + f.id);
+        const input = document.createElement("input");
+        input.type = f.type || "text";
+        input.id = "imField_" + f.id;
+        input.placeholder = f.placeholder || "";
+        container.appendChild(label);
+        container.appendChild(input);
+      });
+
+      document.getElementById("inputModalOverlay").hidden = false;
+      const firstInput = container.querySelector("input");
+      if (firstInput) setTimeout(() => firstInput.focus(), 50);
+    });
+  }
+
+  function closeInputModal(result){
+    document.getElementById("inputModalOverlay").hidden = true;
+    if (_imResolve) {
+      _imResolve(result);
+      _imResolve = null;
+    }
+  }
+
+  document.getElementById("imConfirmBtn").addEventListener("click", () => {
+    const container = document.getElementById("imFields");
+    const inputs = container.querySelectorAll("input");
+    const result = {};
+    let allFilled = true;
+    inputs.forEach((input) => {
+      const id = input.id.replace("imField_", "");
+      result[id] = input.value.trim();
+      if (!result[id]) allFilled = false;
+    });
+    if (!allFilled) {
+      inputs.forEach((input) => {
+        if (!input.value.trim()) input.style.borderColor = "#d9534f";
+      });
+      return;
+    }
+    closeInputModal(result);
+  });
+
+  // Permet de valider avec la touche Entree
+  document.getElementById("imFields").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      document.getElementById("imConfirmBtn").click();
+    }
+  });
+</script>
+
+</body> de la page qui s'affiche APRÈS une inscription réussie
      (ex: la page d'accueil ou le tableau de bord après signup).
 
   2. Dans ton code d'inscription (le endroit où tu confirmes que le compte
@@ -270,6 +421,157 @@
     document.getElementById('welcomeModalOverlay').hidden = true;
     localStorage.setItem('efoot_welcome_seen', '1');
   }
+</script>
+
+<!--
+  MODAL STYLE POUR REMPLACER LES prompt() DU NAVIGATEUR
+  =======================================================
+  Colle ce bloc entier juste avant la balise </body> de index.html
+  (en dessous du popup de bienvenue, par exemple).
+-->
+
+<div id="inputModalOverlay" class="im-overlay" hidden>
+  <div class="im-modal">
+    <button class="im-close" onclick="closeInputModal(null)" aria-label="Fermer">✕</button>
+    <h3 class="im-title" id="imTitle"></h3>
+    <p class="im-message" id="imMessage"></p>
+    <div id="imFields"></div>
+    <div class="im-actions">
+      <button class="im-confirm" id="imConfirmBtn">Valider</button>
+      <button class="im-cancel" onclick="closeInputModal(null)">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .im-overlay{
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+  }
+  .im-overlay[hidden]{ display:none; }
+
+  .im-modal{
+    position: relative;
+    background: #12140F;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    max-width: 380px;
+    width: 100%;
+    padding: 28px 24px;
+    color: var(--chalk);
+    font-family: inherit;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+  }
+  .im-close{
+    position:absolute; top:12px; right:14px;
+    background:none; border:none; color: var(--chalk-dim);
+    font-size: 16px; cursor:pointer;
+  }
+  .im-title{
+    font-size: 18px; font-weight:700; margin-bottom: 8px; color: var(--chalk);
+  }
+  .im-message{
+    font-size: 13.5px; color: var(--chalk-dim); line-height:1.5; margin-bottom: 18px;
+  }
+  #imFields{
+    display:flex; flex-direction:column; gap:12px; margin-bottom: 20px;
+  }
+  #imFields label{
+    font-size: 12.5px; color: var(--chalk-dim); margin-bottom: -6px; display:block;
+  }
+  #imFields input{
+    width:100%;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 11px 13px;
+    color: var(--chalk);
+    font-size: 15px;
+    font-family: inherit;
+  }
+  #imFields input:focus{ outline:none; border-color: var(--gold); }
+
+  .im-actions{ display:flex; flex-direction:column; gap:10px; }
+  .im-confirm{
+    background: var(--gold); color:#12140F; font-weight:700;
+    border:none; padding:12px; border-radius:10px; font-size:14px; cursor:pointer;
+  }
+  .im-confirm:hover{ background: var(--gold-bright); }
+  .im-cancel{
+    background:none; border:none; color: var(--chalk-dim);
+    font-size:13px; cursor:pointer; padding:6px;
+  }
+</style>
+
+<script>
+  let _imResolve = null;
+
+  // fields: [{ id, label, type }]  ex: [{id:"code", label:"Code recu", type:"text"}]
+  function showInputModal(title, message, fields, confirmLabel){
+    return new Promise((resolve) => {
+      _imResolve = resolve;
+      document.getElementById("imTitle").textContent = title;
+      document.getElementById("imMessage").textContent = message || "";
+      document.getElementById("imConfirmBtn").textContent = confirmLabel || "Valider";
+
+      const container = document.getElementById("imFields");
+      container.innerHTML = "";
+      fields.forEach((f) => {
+        const label = document.createElement("label");
+        label.textContent = f.label;
+        label.setAttribute("for", "imField_" + f.id);
+        const input = document.createElement("input");
+        input.type = f.type || "text";
+        input.id = "imField_" + f.id;
+        input.placeholder = f.placeholder || "";
+        container.appendChild(label);
+        container.appendChild(input);
+      });
+
+      document.getElementById("inputModalOverlay").hidden = false;
+      const firstInput = container.querySelector("input");
+      if (firstInput) setTimeout(() => firstInput.focus(), 50);
+    });
+  }
+
+  function closeInputModal(result){
+    document.getElementById("inputModalOverlay").hidden = true;
+    if (_imResolve) {
+      _imResolve(result);
+      _imResolve = null;
+    }
+  }
+
+  document.getElementById("imConfirmBtn").addEventListener("click", () => {
+    const container = document.getElementById("imFields");
+    const inputs = container.querySelectorAll("input");
+    const result = {};
+    let allFilled = true;
+    inputs.forEach((input) => {
+      const id = input.id.replace("imField_", "");
+      result[id] = input.value.trim();
+      if (!result[id]) allFilled = false;
+    });
+    if (!allFilled) {
+      inputs.forEach((input) => {
+        if (!input.value.trim()) input.style.borderColor = "#d9534f";
+      });
+      return;
+    }
+    closeInputModal(result);
+  });
+
+  // Permet de valider avec la touche Entree
+  document.getElementById("imFields").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      document.getElementById("imConfirmBtn").click();
+    }
+  });
 </script>
 
 </body> de la page qui s'affiche APRÈS une inscription réussie
@@ -377,7 +679,158 @@
   COMMENT INTÉGRER CE POPUP
   =========================
   1. Copie tout le bloc ci-dessous (HTML + CSS + JS) et colle-le juste avant
-     la balise </body> de la page qui s'affiche APRÈS une inscription réussie
+     la balise <!--
+  MODAL STYLE POUR REMPLACER LES prompt() DU NAVIGATEUR
+  =======================================================
+  Colle ce bloc entier juste avant la balise </body> de index.html
+  (en dessous du popup de bienvenue, par exemple).
+-->
+
+<div id="inputModalOverlay" class="im-overlay" hidden>
+  <div class="im-modal">
+    <button class="im-close" onclick="closeInputModal(null)" aria-label="Fermer">✕</button>
+    <h3 class="im-title" id="imTitle"></h3>
+    <p class="im-message" id="imMessage"></p>
+    <div id="imFields"></div>
+    <div class="im-actions">
+      <button class="im-confirm" id="imConfirmBtn">Valider</button>
+      <button class="im-cancel" onclick="closeInputModal(null)">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .im-overlay{
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+  }
+  .im-overlay[hidden]{ display:none; }
+
+  .im-modal{
+    position: relative;
+    background: #12140F;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    max-width: 380px;
+    width: 100%;
+    padding: 28px 24px;
+    color: var(--chalk);
+    font-family: inherit;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+  }
+  .im-close{
+    position:absolute; top:12px; right:14px;
+    background:none; border:none; color: var(--chalk-dim);
+    font-size: 16px; cursor:pointer;
+  }
+  .im-title{
+    font-size: 18px; font-weight:700; margin-bottom: 8px; color: var(--chalk);
+  }
+  .im-message{
+    font-size: 13.5px; color: var(--chalk-dim); line-height:1.5; margin-bottom: 18px;
+  }
+  #imFields{
+    display:flex; flex-direction:column; gap:12px; margin-bottom: 20px;
+  }
+  #imFields label{
+    font-size: 12.5px; color: var(--chalk-dim); margin-bottom: -6px; display:block;
+  }
+  #imFields input{
+    width:100%;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 11px 13px;
+    color: var(--chalk);
+    font-size: 15px;
+    font-family: inherit;
+  }
+  #imFields input:focus{ outline:none; border-color: var(--gold); }
+
+  .im-actions{ display:flex; flex-direction:column; gap:10px; }
+  .im-confirm{
+    background: var(--gold); color:#12140F; font-weight:700;
+    border:none; padding:12px; border-radius:10px; font-size:14px; cursor:pointer;
+  }
+  .im-confirm:hover{ background: var(--gold-bright); }
+  .im-cancel{
+    background:none; border:none; color: var(--chalk-dim);
+    font-size:13px; cursor:pointer; padding:6px;
+  }
+</style>
+
+<script>
+  let _imResolve = null;
+
+  // fields: [{ id, label, type }]  ex: [{id:"code", label:"Code recu", type:"text"}]
+  function showInputModal(title, message, fields, confirmLabel){
+    return new Promise((resolve) => {
+      _imResolve = resolve;
+      document.getElementById("imTitle").textContent = title;
+      document.getElementById("imMessage").textContent = message || "";
+      document.getElementById("imConfirmBtn").textContent = confirmLabel || "Valider";
+
+      const container = document.getElementById("imFields");
+      container.innerHTML = "";
+      fields.forEach((f) => {
+        const label = document.createElement("label");
+        label.textContent = f.label;
+        label.setAttribute("for", "imField_" + f.id);
+        const input = document.createElement("input");
+        input.type = f.type || "text";
+        input.id = "imField_" + f.id;
+        input.placeholder = f.placeholder || "";
+        container.appendChild(label);
+        container.appendChild(input);
+      });
+
+      document.getElementById("inputModalOverlay").hidden = false;
+      const firstInput = container.querySelector("input");
+      if (firstInput) setTimeout(() => firstInput.focus(), 50);
+    });
+  }
+
+  function closeInputModal(result){
+    document.getElementById("inputModalOverlay").hidden = true;
+    if (_imResolve) {
+      _imResolve(result);
+      _imResolve = null;
+    }
+  }
+
+  document.getElementById("imConfirmBtn").addEventListener("click", () => {
+    const container = document.getElementById("imFields");
+    const inputs = container.querySelectorAll("input");
+    const result = {};
+    let allFilled = true;
+    inputs.forEach((input) => {
+      const id = input.id.replace("imField_", "");
+      result[id] = input.value.trim();
+      if (!result[id]) allFilled = false;
+    });
+    if (!allFilled) {
+      inputs.forEach((input) => {
+        if (!input.value.trim()) input.style.borderColor = "#d9534f";
+      });
+      return;
+    }
+    closeInputModal(result);
+  });
+
+  // Permet de valider avec la touche Entree
+  document.getElementById("imFields").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      document.getElementById("imConfirmBtn").click();
+    }
+  });
+</script>
+
+</body> de la page qui s'affiche APRÈS une inscription réussie
      (ex: la page d'accueil ou le tableau de bord après signup).
 
   2. Dans ton code d'inscription (le endroit où tu confirmes que le compte
@@ -476,6 +929,157 @@
     document.getElementById('welcomeModalOverlay').hidden = true;
     localStorage.setItem('efoot_welcome_seen', '1');
   }
+</script>
+
+<!--
+  MODAL STYLE POUR REMPLACER LES prompt() DU NAVIGATEUR
+  =======================================================
+  Colle ce bloc entier juste avant la balise </body> de index.html
+  (en dessous du popup de bienvenue, par exemple).
+-->
+
+<div id="inputModalOverlay" class="im-overlay" hidden>
+  <div class="im-modal">
+    <button class="im-close" onclick="closeInputModal(null)" aria-label="Fermer">✕</button>
+    <h3 class="im-title" id="imTitle"></h3>
+    <p class="im-message" id="imMessage"></p>
+    <div id="imFields"></div>
+    <div class="im-actions">
+      <button class="im-confirm" id="imConfirmBtn">Valider</button>
+      <button class="im-cancel" onclick="closeInputModal(null)">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .im-overlay{
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+  }
+  .im-overlay[hidden]{ display:none; }
+
+  .im-modal{
+    position: relative;
+    background: #12140F;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    max-width: 380px;
+    width: 100%;
+    padding: 28px 24px;
+    color: var(--chalk);
+    font-family: inherit;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+  }
+  .im-close{
+    position:absolute; top:12px; right:14px;
+    background:none; border:none; color: var(--chalk-dim);
+    font-size: 16px; cursor:pointer;
+  }
+  .im-title{
+    font-size: 18px; font-weight:700; margin-bottom: 8px; color: var(--chalk);
+  }
+  .im-message{
+    font-size: 13.5px; color: var(--chalk-dim); line-height:1.5; margin-bottom: 18px;
+  }
+  #imFields{
+    display:flex; flex-direction:column; gap:12px; margin-bottom: 20px;
+  }
+  #imFields label{
+    font-size: 12.5px; color: var(--chalk-dim); margin-bottom: -6px; display:block;
+  }
+  #imFields input{
+    width:100%;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 11px 13px;
+    color: var(--chalk);
+    font-size: 15px;
+    font-family: inherit;
+  }
+  #imFields input:focus{ outline:none; border-color: var(--gold); }
+
+  .im-actions{ display:flex; flex-direction:column; gap:10px; }
+  .im-confirm{
+    background: var(--gold); color:#12140F; font-weight:700;
+    border:none; padding:12px; border-radius:10px; font-size:14px; cursor:pointer;
+  }
+  .im-confirm:hover{ background: var(--gold-bright); }
+  .im-cancel{
+    background:none; border:none; color: var(--chalk-dim);
+    font-size:13px; cursor:pointer; padding:6px;
+  }
+</style>
+
+<script>
+  let _imResolve = null;
+
+  // fields: [{ id, label, type }]  ex: [{id:"code", label:"Code recu", type:"text"}]
+  function showInputModal(title, message, fields, confirmLabel){
+    return new Promise((resolve) => {
+      _imResolve = resolve;
+      document.getElementById("imTitle").textContent = title;
+      document.getElementById("imMessage").textContent = message || "";
+      document.getElementById("imConfirmBtn").textContent = confirmLabel || "Valider";
+
+      const container = document.getElementById("imFields");
+      container.innerHTML = "";
+      fields.forEach((f) => {
+        const label = document.createElement("label");
+        label.textContent = f.label;
+        label.setAttribute("for", "imField_" + f.id);
+        const input = document.createElement("input");
+        input.type = f.type || "text";
+        input.id = "imField_" + f.id;
+        input.placeholder = f.placeholder || "";
+        container.appendChild(label);
+        container.appendChild(input);
+      });
+
+      document.getElementById("inputModalOverlay").hidden = false;
+      const firstInput = container.querySelector("input");
+      if (firstInput) setTimeout(() => firstInput.focus(), 50);
+    });
+  }
+
+  function closeInputModal(result){
+    document.getElementById("inputModalOverlay").hidden = true;
+    if (_imResolve) {
+      _imResolve(result);
+      _imResolve = null;
+    }
+  }
+
+  document.getElementById("imConfirmBtn").addEventListener("click", () => {
+    const container = document.getElementById("imFields");
+    const inputs = container.querySelectorAll("input");
+    const result = {};
+    let allFilled = true;
+    inputs.forEach((input) => {
+      const id = input.id.replace("imField_", "");
+      result[id] = input.value.trim();
+      if (!result[id]) allFilled = false;
+    });
+    if (!allFilled) {
+      inputs.forEach((input) => {
+        if (!input.value.trim()) input.style.borderColor = "#d9534f";
+      });
+      return;
+    }
+    closeInputModal(result);
+  });
+
+  // Permet de valider avec la touche Entree
+  document.getElementById("imFields").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      document.getElementById("imConfirmBtn").click();
+    }
+  });
 </script>
 
 </body>

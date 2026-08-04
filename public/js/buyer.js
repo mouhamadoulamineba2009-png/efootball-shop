@@ -88,8 +88,14 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) { errEl.textContent = data.error || "Connexion impossible"; return; }
     pendingBuyerId = data.buyerId;
-    const code = prompt("Un code de confirmation a ete envoye par email. Entrez-le ici :");
-    if (!code) { errEl.textContent = "Code requis pour se connecter"; return; }
+    const codeResult = await showInputModal(
+      "Code de confirmation",
+      "Un code de confirmation a ete envoye par email.",
+      [{ id: "code", label: "Code recu", type: "text", placeholder: "123456" }],
+      "Confirmer"
+    );
+    if (!codeResult) { errEl.textContent = "Code requis pour se connecter"; return; }
+    const code = codeResult.code;
     const verifyRes = await fetch("/api/buyer/login/verify-code", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -356,8 +362,14 @@ checkBuyerSession();
 
 document.getElementById("forgotPasswordLink").addEventListener("click", async (e) => {
   e.preventDefault();
-  const email = prompt("Entrez votre email pour recevoir un code de reinitialisation :");
-  if (!email) return;
+  const step1 = await showInputModal(
+    "Mot de passe oublie",
+    "Entrez votre email pour recevoir un code de reinitialisation.",
+    [{ id: "email", label: "Email", type: "email", placeholder: "vous@email.com" }],
+    "Envoyer le code"
+  );
+  if (!step1) return;
+  const email = step1.email;
 
   try {
     await fetch("/api/buyer/forgot-password", {
@@ -370,17 +382,22 @@ document.getElementById("forgotPasswordLink").addEventListener("click", async (e
     return;
   }
 
-  const code = prompt("Un code a ete envoye par email (s'il existe un compte avec cet email). Entrez le code recu :");
-  if (!code) return;
-
-  const newPassword = prompt("Entrez votre nouveau mot de passe (6 caracteres minimum) :");
-  if (!newPassword) return;
+  const step2 = await showInputModal(
+    "Code recu par email",
+    "Un code a ete envoye par email (s'il existe un compte avec cet email). Entrez-le ci-dessous avec votre nouveau mot de passe.",
+    [
+      { id: "code", label: "Code recu", type: "text", placeholder: "123456" },
+      { id: "newPassword", label: "Nouveau mot de passe", type: "password", placeholder: "6 caracteres minimum" }
+    ],
+    "Reinitialiser"
+  );
+  if (!step2) return;
 
   try {
     const res = await fetch("/api/buyer/reset-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, code, newPassword }),
+      body: JSON.stringify({ email, code: step2.code, newPassword: step2.newPassword }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
