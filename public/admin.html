@@ -56,6 +56,15 @@
 
           <label for="price">Prix (FCFA)</label>
           <input type="number" id="price" placeholder="Ex : 15000" required min="0">
+          <label for="category">Categorie</label>
+          <select id="category">
+            <option value="">-- Choisir --</option>
+            <option value="Standard">Standard (1 000 - 5 000 FCFA)</option>
+            <option value="Intermediaire">Intermediaire (5 000 - 25 000 FCFA)</option>
+            <option value="Premium">Premium (25 000 - 75 000 FCFA)</option>
+            <option value="Elite">Elite (75 000 - 150 000 FCFA)</option>
+            <option value="Legendaire">Legendaire (150 000 - 200 000 FCFA)</option>
+          </select>
 
           <label for="oldPrice">Prix barré — promo (FCFA, optionnel)</label>
           <input type="number" id="oldPrice" placeholder="Laisser vide si pas de promo" min="0">

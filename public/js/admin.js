@@ -305,6 +305,7 @@ form.addEventListener("submit", async (e) => {
   fd.append("description", document.getElementById("description").value);
   fd.append("phone_number", document.getElementById("phone").value);
   fd.append("is_flash", document.getElementById("isFlash").checked);
+  fd.append("category", document.getElementById("category").value);
   const photoFile = document.getElementById("photo").files[0];
   if (photoFile) fd.append("photo", photoFile);
 

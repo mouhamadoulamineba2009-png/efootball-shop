@@ -77,16 +77,16 @@ async function uploadPhoto(file) {
 // --- Créer un compte ---
 router.post("/accounts", upload.single("photo"), async (req, res) => {
   try {
-    const { title, price, description, phone_number, old_price, is_flash } = req.body;
+    const { title, price, description, phone_number, old_price, is_flash, category } = req.body;
     if (!title || !price) {
       return res.status(400).json({ error: "Titre et prix sont obligatoires" });
     }
     const photoUrl = await uploadPhoto(req.file);
 
     const { rows } = await pool.query(
-      `insert into accounts (title, price, old_price, description, photo_url, phone_number, is_flash)
-       values ($1, $2, $3, $4, $5, $6, $7) returning id`,
-      [title, price, old_price ? old_price : null, description || "", photoUrl, phone_number || null, is_flash === "true" || is_flash === true]
+      `insert into accounts (title, price, old_price, description, photo_url, phone_number, is_flash, category)
+       values ($1, $2, $3, $4, $5, $6, $7, $8) returning id`,
+      [title, price, old_price ? old_price : null, description || "", photoUrl, phone_number || null, is_flash === "true" || is_flash === true, category || null]
     );
 
     // Notifie tous les acheteurs inscrits si le compte est une vente flash
