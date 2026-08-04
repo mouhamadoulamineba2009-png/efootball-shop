@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grille de prix — Efoot Market SN</title>
+<link rel="icon" type="image/png" href="/favicon-32.png">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  .prix-wrap{
+    max-width: 640px;
+    margin: 48px auto 80px;
+    padding: 0 20px;
+  }
+  .prix-title{
+    font-size: clamp(24px, 5vw, 32px);
+    font-weight: 700;
+    color: var(--chalk);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .prix-title span{ color: var(--gold); }
+  .prix-sub{
+    color: var(--chalk-dim);
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+  .prix-list{
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .prix-card{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 22px;
+    gap: 12px;
+  }
+  .prix-name{
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--chalk);
+  }
+  .prix-desc{
+    font-size: 12.5px;
+    color: var(--chalk-dim);
+    margin-top: 2px;
+  }
+  .prix-value{
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--gold);
+    white-space: nowrap;
+    text-align: right;
+  }
+  .prix-note{
+    font-size: 12.5px;
+    color: var(--chalk-dim);
+    text-align: center;
+    margin-top: 24px;
+  }
+  .prix-cta{
+    display:block;
+    text-align:center;
+    background: var(--gold);
+    color:#12140F;
+    font-weight:700;
+    text-decoration:none;
+    padding: 14px;
+    border-radius: 10px;
+    margin-top: 28px;
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <div class="brand">EFOOT MARKET<span> SN</span></div>
+    <div class="tagline">Comptes eFootball vérifiés — paiement en FCFA</div>
+    <nav class="main-nav"><a href="/about.html">À propos</a> <a href="/vendre.html">Vendre mon compte</a></nav>
+  </div>
+</header>
+
+<main class="prix-wrap">
+  <div class="prix-title">Grille de <span>prix</span></div>
+  <div class="prix-sub">Un aperçu des tarifs selon le niveau du compte. Le prix exact dépend des joueurs, coins et éléments inclus.</div>
+
+  <div class="prix-list">
+    <div class="prix-card">
+      <div>
+        <div class="prix-name">Standard</div>
+        <div class="prix-desc">Compte de base, idéal pour démarrer</div>
+      </div>
+      <div class="prix-value">1 000 – 5 000 FCFA</div>
+    </div>
+
+    <div class="prix-card">
+      <div>
+        <div class="prix-name">Intermédiaire</div>
+        <div class="prix-desc">Bon niveau, quelques joueurs forts</div>
+      </div>
+      <div class="prix-value">5 000 – 25 000 FCFA</div>
+    </div>
+
+    <div class="prix-card">
+      <div>
+        <div class="prix-name">Premium</div>
+        <div class="prix-desc">Joueurs rares, coins conséquents</div>
+      </div>
+      <div class="prix-value">25 000 – 75 000 FCFA</div>
+    </div>
+
+    <div class="prix-card">
+      <div>
+        <div class="prix-name">Élite</div>
+        <div class="prix-desc">Compte très avancé, gros investissement</div>
+      </div>
+      <div class="prix-value">75 000 – 150 000 FCFA</div>
+    </div>
+
+    <div class="prix-card">
+      <div>
+        <div class="prix-name">Légendaire</div>
+        <div class="prix-desc">Top niveau, comptes d'exception</div>
+      </div>
+      <div class="prix-value">150 000 – 200 000 FCFA</div>
+    </div>
+  </div>
+
+  <div class="prix-note">Prix indicatifs — contacte-nous sur WhatsApp pour un prix exact selon le compte qui t'intéresse.</div>
+
+  <a href="https://wa.me/221771961314" target="_blank" rel="noopener" class="prix-cta">💬 Discuter sur WhatsApp</a>
+</main>
+
+</body>
+</html>
